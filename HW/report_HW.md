@@ -43,18 +43,28 @@ https://github.com/IlyasLatypov/recsys-itmo-spring-2023
 
 5. Для сравнения рекомендеров добавлены: БД REDIS_MY_TRACKS, файл tracks_with_recs_HW_50.json и соответствующая загрузка в коде
 
-## Результаты A/B эксперимента
+### Результаты A/B эксперимента (top 100)
 ![AB_tests_top100](ab_100.png)
+
+### Результаты A/B эксперимента (top 50)
 ![AB_tests_top50](ab_50.png)
 
 ### Инструкция по запуску эксперимента
 cd botify
+
 sudo docker compose up -d --build
+
 cd ../sim
+
 conda create --name env python=3.7
+
 conda activate env
+
 pip install -r requirements.txt
+
 export PYTHONPATH=${PYTHONPATH}:.
+
 python sim/run.py --episodes 1000 --config config/env.yml single --recommender remote --seed 31337 
+
 docker cp recommender-container:/app/log/ /tmp/recsys
 
