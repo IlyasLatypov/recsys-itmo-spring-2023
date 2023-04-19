@@ -1,6 +1,6 @@
 Домашняя работа
 
-## Ссылка на репозиторий
+### Ссылка на репозиторий
 
 https://github.com/IlyasLatypov/recsys-itmo-spring-2023
 
@@ -48,6 +48,8 @@ https://github.com/IlyasLatypov/recsys-itmo-spring-2023
 
 ### Результаты A/B эксперимента (top 50)
 ![AB_tests_top50](ab_50.png)
+
+Файл в котором оценивался эксперимент: Week1Seminar_HW.ipynb
 
 ### Инструкция по запуску эксперимента
 cd botify
