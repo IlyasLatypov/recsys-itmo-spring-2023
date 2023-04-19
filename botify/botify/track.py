@@ -22,11 +22,10 @@ class Catalog:
     def __init__(self, app):
         self.app = app
         self.tracks = []
+        self.my_tracks = []
         self.top_tracks = []
-        self.tracks_with_diverse_recs = []
 
-    # TODO Seminar 6 step 1: Configure reading tracks with diverse recommendations
-    def load(self, catalog_path, top_tracks_path, tracks_with_diverse_recs_path):
+    def load(self, catalog_path, top_tracks_path, my_tracks_path):
         self.app.logger.info(f"Loading tracks from {catalog_path}")
         with open(catalog_path) as catalog_file:
             for j, line in enumerate(catalog_file):
@@ -41,17 +40,11 @@ class Catalog:
                 )
         self.app.logger.info(f"Loaded {j+1} tracks")
 
-        self.app.logger.info(f"Loading top tracks from {top_tracks_path}")
-        with open(top_tracks_path) as top_tracks_path_file:
-            self.top_tracks = json.load(top_tracks_path_file)
-        self.app.logger.info(f"Loaded top tracks {self.top_tracks[:3]} ...")
-
-        self.app.logger.info(f"Loading tracks with diverse recommendations from {tracks_with_diverse_recs_path}")
-
-        with open(tracks_with_diverse_recs_path) as tracks_with_diverse_recs_file:
-            for j, line in enumerate(tracks_with_diverse_recs_file):
+        self.app.logger.info(f"Loading my tracks from {my_tracks_path}")
+        with open(my_tracks_path) as catalog_file:
+            for j, line in enumerate(catalog_file):
                 data = json.loads(line)
-                self.tracks_with_diverse_recs.append(
+                self.my_tracks.append(
                     Track(
                         data["track"],
                         data["artist"],
@@ -59,23 +52,26 @@ class Catalog:
                         data.get("recommendations", []),
                     )
                 )
+        self.app.logger.info(f"Loaded {j+1} my tracks")
 
-        self.app.logger.info(f"Loaded {j + 1} tracks with diverse recs")
+        self.app.logger.info(f"Loading top tracks from {top_tracks_path}")
+        with open(top_tracks_path) as top_tracks_path_file:
+            self.top_tracks = json.load(top_tracks_path_file)
+        self.app.logger.info(f"Loaded top tracks {self.top_tracks[:3]} ...")
 
         return self
 
-    # TODO Seminar 6 step 2: Configure uploading tracks with diverse recommendations to redis DB
-    def upload_tracks(self, redis_tracks, redis_tracks_with_diverse_recs):
+    def upload_tracks(self, redis):
         self.app.logger.info(f"Uploading tracks to redis")
         for track in self.tracks:
-            redis_tracks.set(track.track, self.to_bytes(track))
-
-        for track in self.tracks_with_diverse_recs:
-            redis_tracks_with_diverse_recs.set(track.track, self.to_bytes(track))
-
-        self.app.logger.info(
-            f"Uploaded {len(self.tracks)} tracks, {len(self.tracks_with_diverse_recs)} tracks with diverse recs"
-        )
+            redis.set(track.track, self.to_bytes(track))
+        self.app.logger.info(f"Uploaded {len(self.tracks)} tracks")
+    
+    def upload_my_tracks(self, redis):
+        self.app.logger.info(f"Uploading my tracks to redis")
+        for track in self.my_tracks:
+            redis.set(track.track, self.to_bytes(track))
+        self.app.logger.info(f"Uploaded {len(self.tracks)} my tracks")
 
     def upload_artists(self, redis):
         self.app.logger.info(f"Uploading artists to redis")
@@ -87,8 +83,8 @@ class Catalog:
             redis.set(artist, self.to_bytes(artist_tracks))
         self.app.logger.info(f"Uploaded {j + 1} artists")
 
-    def upload_recommendations(self, redis, recommendations_path="RECOMMENDATIONS_FILE_PATH"):
-        recommendations_file_path = self.app.config[recommendations_path]
+    def upload_recommendations(self, redis):
+        recommendations_file_path = self.app.config["RECOMMENDATIONS_FILE_PATH"]
 
         self.app.logger.info(
             f"Uploading recommendations to redis from {recommendations_file_path}"
